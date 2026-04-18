@@ -135,6 +135,16 @@ This script will:
 2. Start the MariaDB service
 3. Prepare the local database environment
 
+Important:
+
+The shell scripts are stored inside the [scripts](scripts) directory.
+If you run `chmod +x install_wsl_env.sh bootstrap_database.sh verify_database.sh` directly from the project root, Linux will report that the files do not exist.
+The correct paths are:
+
+```bash
+chmod +x scripts/install_wsl_env.sh scripts/bootstrap_database.sh scripts/verify_database.sh
+```
+
 ### One-command database bootstrap
 
 After installation, initialize the project database with:
@@ -179,11 +189,127 @@ USE smarteats;
 SHOW TABLES;
 ```
 
+What these commands mean:
+
+1. `sudo mariadb --local-infile=1`
+  Starts the MariaDB command-line client with administrator privileges and enables CSV loading.
+2. `SOURCE sql/00_initialize_database.sql;`
+  Executes the main project script, which creates the database, creates all tables, and loads the CSV data.
+3. `USE smarteats;`
+  Switches the current session to the `smarteats` database.
+4. `SHOW TABLES;`
+  Lists all tables currently created inside the selected database.
+
 Why `sudo` is required in WSL:
 
 - On Ubuntu, MariaDB often configures `root@localhost` with socket authentication by default.
 - That means `mariadb -u root` may fail with `ERROR 1698 (28000): Access denied for user 'root'@'localhost'`.
 - `sudo mariadb` is the correct default way to access the local database as root in this environment.
+
+## Example Usage
+
+The following example shows a complete database session from connection to business query.
+
+### Step 1. Enter the database client
+
+```bash
+cd /mnt/c/Users/15957/Desktop/CSC3170_project
+sudo mariadb --local-infile=1
+```
+
+### Step 2. Select the project database
+
+```sql
+USE smarteats;
+```
+
+This tells MariaDB that all following operations should be executed inside the SmartEats project database.
+
+### Step 3. Check whether the schema is loaded
+
+```sql
+SHOW TABLES;
+```
+
+Expected result:
+
+- `address`
+- `category`
+- `customer`
+- `delivery_task`
+- `dish`
+- `merchant`
+- `order_detail`
+- `orders`
+- `rider`
+- `store`
+
+This confirms that the four modules have been successfully created.
+
+### Step 4. Check whether the data is loaded
+
+```sql
+SELECT COUNT(*) AS total_orders FROM orders;
+SELECT COUNT(*) AS total_dishes FROM dish;
+SELECT COUNT(*) AS total_riders FROM rider;
+```
+
+Expected values in this project:
+
+- `total_orders = 50`
+- `total_dishes = 550`
+- `total_riders = 200`
+
+This confirms that the CSV data import process completed successfully.
+
+### Step 5. Execute a real business query
+
+Example: show the order history and delivery progress of customer `C001`.
+
+```sql
+SELECT o.order_id,
+       o.order_time,
+       o.order_status,
+       o.total_amount,
+       dt.task_status,
+       r.real_name AS rider_name
+FROM orders AS o
+LEFT JOIN delivery_task AS dt ON dt.order_id = o.order_id
+LEFT JOIN rider AS r ON r.rider_id = dt.rider_id
+WHERE o.customer_id = 'C001'
+ORDER BY o.order_time DESC;
+```
+
+What this query proves:
+
+1. The customer module and order module are linked correctly.
+2. The order module and delivery module are linked correctly.
+3. The database supports practical operational queries, not just table creation.
+
+### Step 6. Verify structural integrity
+
+```sql
+SELECT COUNT(*) AS invalid_customer_address_links
+FROM orders AS o
+LEFT JOIN address AS a
+  ON o.customer_id = a.customer_id
+ AND o.address_id = a.address_id
+WHERE a.address_id IS NULL;
+
+SELECT COUNT(*) AS invalid_delivery_links
+FROM delivery_task AS dt
+LEFT JOIN orders AS o
+  ON dt.order_id = o.order_id
+WHERE dt.order_id IS NOT NULL
+  AND o.order_id IS NULL;
+```
+
+Expected result:
+
+- `invalid_customer_address_links = 0`
+- `invalid_delivery_links = 0`
+
+This is direct evidence that the foreign key design and weak entity handling are working correctly.
 
 ## Query Files
 
@@ -280,3 +406,16 @@ These issues are now corrected in the cleaned project structure.
 - The original ZIP bundles are preserved in `archive/` for traceability.
 - The cleaned SQL scripts in `sql/` are now the authoritative version.
 - If your MySQL environment blocks `LOCAL INFILE`, enable it in the client configuration before loading.
+
+
+## Quick Start
+
+For a clean WSL Ubuntu setup, the recommended command sequence is:
+
+```bash
+cd /mnt/c/Users/15957/Desktop/CSC3170_project
+chmod +x scripts/install_wsl_env.sh scripts/bootstrap_database.sh scripts/verify_database.sh
+./scripts/install_wsl_env.sh
+./scripts/bootstrap_database.sh
+./scripts/verify_database.sh
+```

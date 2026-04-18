@@ -1,6 +1,6 @@
 # SmartEats Food Delivery Platform Database Project
 
-This repository contains a cleaned, normalized, and runnable MySQL 8.0 database project for CSC 3170 Project 2026. The project models a food delivery platform with four coordinated modules:
+This repository contains a cleaned, normalized, and runnable MySQL-compatible database project for CSC 3170 Project 2026. The project models a food delivery platform with four coordinated modules:
 
 1. Consumer Side
 2. Merchant and Menu
@@ -96,37 +96,94 @@ The design keeps the schema in good normalized form:
 - 200 riders
 - 500 delivery tasks
 
-## How to Run
+## Environment Setup
 
-### Prerequisites
+### Why your previous commands failed
 
-- MySQL 8.0 or above
-- `LOCAL INFILE` enabled in the MySQL client
+Your WSL shell error came from two separate issues:
 
-If you use the MySQL command line client, start it with local infile enabled:
+1. `mysql: command not found`
+  This means the database client was not installed in WSL.
+2. `SOURCE`, `USE`, and `SHOW TABLES` were executed in bash directly.
+  These are SQL commands and must be executed inside the MySQL or MariaDB client, not in the Linux shell.
 
-```sql
-mysql --local-infile=1 -u root -p
+### Dependency file
+
+This repository now includes a simple system package list in [requirements.txt](requirements.txt).
+
+Note: this file is used here as a lightweight package manifest for WSL Ubuntu system dependencies, not as a Python dependency file.
+
+For WSL Ubuntu, the one-click installation target is MariaDB 10.11, which is MySQL-compatible for this project.
+
+The SQL scripts are written to run under:
+
+- MySQL 8.0+
+- MariaDB 10.11+ on Ubuntu WSL
+
+### One-command installation in WSL
+
+From the project root in WSL, run:
+
+```bash
+chmod +x scripts/install_wsl_env.sh scripts/bootstrap_database.sh scripts/verify_database.sh
+./scripts/install_wsl_env.sh
 ```
 
-Then from the project root, run:
+This script will:
+
+1. Install the required client and server packages from [requirements.txt](requirements.txt)
+2. Start the MariaDB service
+3. Prepare the local database environment
+
+### One-command database bootstrap
+
+After installation, initialize the project database with:
+
+```bash
+./scripts/bootstrap_database.sh
+```
+
+This script runs [sql/00_initialize_database.sql](sql/00_initialize_database.sql) and will:
+
+1. Drop and recreate the `smarteats` database
+2. Create all tables in the correct dependency order
+3. Load all CSV data from the `data/` directory
+
+### One-command verification
+
+To verify that the database is loaded correctly, run:
+
+```bash
+./scripts/verify_database.sh
+```
+
+This script checks:
+
+1. Row counts for all major tables
+2. Whether any order references an invalid customer address
+3. Whether any delivery task references a non-existent order
+
+### Manual client mode
+
+If you want to enter the client manually in WSL Ubuntu, use:
+
+```bash
+sudo mariadb --local-infile=1
+```
+
+Then run SQL commands inside the client:
 
 ```sql
 SOURCE sql/00_initialize_database.sql;
-```
-
-This will:
-
-1. Drop and recreate the `smarteats` database
-2. Create tables in the correct dependency order
-3. Load all CSV data from the `data/` directory
-
-After loading, you can run:
-
-```sql
 USE smarteats;
 SHOW TABLES;
 ```
+
+Why `sudo` is required in WSL:
+
+- On Ubuntu, MariaDB often configures `root@localhost` with socket authentication by default.
+- That means `mariadb -u root` may fail with `ERROR 1698 (28000): Access denied for user 'root'@'localhost'`.
+- `sudo mariadb` is the correct default way to access the local database as root in this environment.
 
 ## Query Files
 

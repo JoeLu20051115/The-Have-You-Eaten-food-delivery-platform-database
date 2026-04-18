@@ -6,7 +6,7 @@
 DROP DATABASE IF EXISTS smarteats;
 CREATE DATABASE smarteats
     DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_0900_ai_ci;
+    DEFAULT COLLATE utf8mb4_unicode_ci;
 
 USE smarteats;
 

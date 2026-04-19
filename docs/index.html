@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartEats GitHub Pages Demo</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+  <div class="background-grid"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-card">
+        <p class="eyebrow">SmartEats Platform</p>
+        <h1>GitHub Pages Demo</h1>
+        <p class="muted">这是一个纯静态在线演示站点，适合直接部署到 GitHub Pages，不依赖长期运行的后端服务。</p>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="explorer">No-Code Query</button>
+        <button class="nav-item" data-view="records">CRUD Studio</button>
+        <button class="nav-item" data-view="schema">Schema Explorer</button>
+        <button class="nav-item" data-view="manual">Feature Manual</button>
+        <button class="nav-item" data-view="guide">Page Guide</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-pill success" id="health-pill">Static Demo Mode</div>
+        <p class="small muted">GitHub Pages 版本展示界面、流程和样例数据，不执行真实数据库写入。</p>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Public Demo Without Server</p>
+          <h2>在 github.io 上直接展示 SmartEats 前端、页面结构、查询流程和数据库项目能力。</h2>
+        </div>
+        <div class="hero-actions">
+          <button class="primary-btn" id="refresh-all-btn">Reload Demo</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="section-header">
+          <div>
+            <h3>Business Dashboard</h3>
+            <p class="muted">基于静态样例数据展示 KPI、订单状态、配送状态和业务分析图表。</p>
+          </div>
+        </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="grid-two">
+          <article class="card">
+            <div class="card-header">
+              <h4>Order Status Distribution</h4>
+              <p class="muted small">展示样例订单状态分布。</p>
+            </div>
+            <div id="order-status-chart" class="chart-stack"></div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Delivery Status Distribution</h4>
+              <p class="muted small">展示样例配送状态分布。</p>
+            </div>
+            <div id="delivery-status-chart" class="chart-stack"></div>
+          </article>
+        </div>
+        <div class="grid-two">
+          <article class="card">
+            <div class="card-header">
+              <h4>Top Dishes by Revenue</h4>
+            </div>
+            <div id="top-dishes-table" class="table-shell"></div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Best Rider Performance</h4>
+            </div>
+            <div id="rider-performance-table" class="table-shell"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-explorer">
+        <div class="section-header">
+          <div>
+            <h3>No-Code Query Builder</h3>
+            <p class="muted">在 GitHub Pages 上仍可演示无代码查询体验，数据来自内置样例数据集。</p>
+          </div>
+        </div>
+        <div class="card form-card">
+          <div class="form-grid">
+            <label>
+              <span>Table</span>
+              <select id="query-table"></select>
+            </label>
+            <label>
+              <span>Search</span>
+              <input id="query-search" type="text" placeholder="Search demo data...">
+            </label>
+            <label>
+              <span>Sort By</span>
+              <select id="query-sort"></select>
+            </label>
+            <label>
+              <span>Direction</span>
+              <select id="query-direction">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              <span>Page Size</span>
+              <select id="query-page-size">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-grid">
+            <label>
+              <span>Filter Field</span>
+              <select id="filter-field"></select>
+            </label>
+            <label>
+              <span>Operator</span>
+              <select id="filter-operator">
+                <option value="eq">Equals</option>
+                <option value="ne">Not equal</option>
+                <option value="lt">Less than</option>
+                <option value="lte">Less than or equal</option>
+                <option value="gt">Greater than</option>
+                <option value="gte">Greater than or equal</option>
+                <option value="like">Contains</option>
+              </select>
+            </label>
+            <label>
+              <span>Value</span>
+              <input id="filter-value" type="text" placeholder="Filter value">
+            </label>
+            <div class="filter-actions">
+              <button class="secondary-btn" id="add-filter-btn">Add Filter</button>
+              <button class="ghost-btn" id="clear-filters-btn">Clear Filters</button>
+            </div>
+          </div>
+          <div class="chips" id="active-filters"></div>
+          <div class="form-actions">
+            <button class="primary-btn" id="run-query-btn">Run Query</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-toolbar">
+            <div id="query-meta" class="muted small"></div>
+            <div class="pager">
+              <button class="ghost-btn" id="prev-page-btn">Previous</button>
+              <button class="ghost-btn" id="next-page-btn">Next</button>
+            </div>
+          </div>
+          <div id="query-results" class="table-shell"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-records">
+        <div class="section-header">
+          <div>
+            <h3>CRUD Studio</h3>
+            <p class="muted">GitHub Pages 模式下展示表单结构与交互流程，但不会提交到真实数据库。</p>
+          </div>
+        </div>
+        <div class="grid-two">
+          <article class="card form-card">
+            <div class="card-header">
+              <h4>Mutation Target</h4>
+            </div>
+            <div class="form-grid two-column">
+              <label>
+                <span>Table</span>
+                <select id="crud-table"></select>
+              </label>
+              <label>
+                <span>Action</span>
+                <select id="crud-action">
+                  <option value="create">Create</option>
+                  <option value="update">Update</option>
+                  <option value="delete">Delete</option>
+                </select>
+              </label>
+            </div>
+            <div class="subsection">
+              <h5>Primary Key Fields</h5>
+              <div id="crud-key-fields" class="dynamic-form"></div>
+            </div>
+            <div class="subsection">
+              <h5>Value Fields</h5>
+              <div id="crud-value-fields" class="dynamic-form"></div>
+            </div>
+            <div class="form-actions">
+              <button class="primary-btn" id="run-mutation-btn">Simulate Action</button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Static Demo Notice</h4>
+            </div>
+            <ul class="feature-list">
+              <li>这个页面展示真实系统的 CRUD 页面布局和输入字段结构。</li>
+              <li>在 GitHub Pages 上不会直接修改数据库。</li>
+              <li>适合老师、同学、评审在线看页面设计和操作流程。</li>
+              <li>真实增删改功能需要运行 FastAPI 后端版本。</li>
+            </ul>
+            <div class="notice-box" id="mutation-result">GitHub Pages 模式下仅演示交互，不会写入数据。</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-schema">
+        <div class="section-header">
+          <div>
+            <h3>Schema Explorer</h3>
+            <p class="muted">展示 SmartEats 核心表结构、字段类型、主键与可搜索列。</p>
+          </div>
+        </div>
+        <div id="schema-grid" class="schema-grid"></div>
+      </section>
+
+      <section class="view" id="view-manual">
+        <div class="section-header">
+          <div>
+            <h3>Feature Manual</h3>
+            <p class="muted">总结站点功能、演示范围以及 GitHub Pages 版本和完整系统版之间的区别。</p>
+          </div>
+        </div>
+        <div class="card">
+          <div id="manual-list" class="manual-list"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-guide">
+        <div class="section-header">
+          <div>
+            <h3>Page Guide</h3>
+            <p class="muted">专门说明网站中每一个页面的用途、适用对象和可展示内容。</p>
+          </div>
+        </div>
+        <div id="page-guide" class="guide-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>

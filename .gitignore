@@ -3,3 +3,8 @@ Thumbs.db
 .vscode/
 *.log
 *.tmp
+__pycache__/
+*.pyc
+.venv/
+webapp/backend/.venv/
+webapp/backend/.env

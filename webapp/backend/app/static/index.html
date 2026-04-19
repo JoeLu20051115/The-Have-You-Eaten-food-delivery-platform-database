@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartEats Control Center</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-view active" id="auth-login-view">
+        <p class="eyebrow">SmartEats Secure Access</p>
+        <h2>Sign In</h2>
+        <p class="muted">Sign in with the administrator account or an existing registered user account.</p>
+        <div class="dynamic-form auth-form">
+          <label>
+            <span>Username</span>
+            <input id="login-username" type="text" placeholder="Enter username">
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="login-password" type="password" placeholder="Enter password">
+          </label>
+        </div>
+        <div class="form-actions auth-actions">
+          <button class="primary-btn" id="login-btn">Sign In</button>
+        </div>
+        <div class="auth-switch-row">
+          <span class="muted small">Have no account?</span>
+          <button class="auth-link-btn" id="show-register-btn" type="button">Register here</button>
+        </div>
+        <div class="notice-box" id="login-message">Please sign in to continue.</div>
+      </div>
+
+      <div class="auth-view" id="auth-register-view">
+        <p class="eyebrow">SmartEats Secure Access</p>
+        <h2>Register</h2>
+        <p class="muted">Create a new customer account first, then return to the sign-in page and log in.</p>
+        <div class="dynamic-form auth-form">
+          <label>
+            <span>Username</span>
+            <input id="register-username" type="text" placeholder="Choose a username">
+          </label>
+          <label>
+            <span>Phone</span>
+            <input id="register-phone" type="text" placeholder="11 to 20 digits">
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="register-password" type="password" placeholder="Create a password">
+          </label>
+        </div>
+        <div class="form-actions auth-actions">
+          <button class="secondary-btn" id="register-btn">Create Account</button>
+        </div>
+        <div class="auth-switch-row">
+          <span class="muted small">Already have an account?</span>
+          <button class="auth-link-btn" id="show-login-btn" type="button">Back to Sign In</button>
+        </div>
+        <div class="notice-box" id="register-message">Fill in all fields to create a new account.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+  <div class="background-grid"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-card">
+        <p class="eyebrow">SmartEats Platform</p>
+        <h1>Control Center</h1>
+        <p class="muted">A production-style data console for live operations, analytics, and no-code database exploration.</p>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="explorer">No-Code Query</button>
+        <button class="nav-item" data-view="records">CRUD Studio</button>
+        <button class="nav-item" data-view="schema">Schema Explorer</button>
+        <button class="nav-item" data-view="manual">Feature Manual</button>
+        <button class="nav-item" data-view="guide">Page Guide</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-pill" id="health-pill">Checking backend...</div>
+        <p class="small muted">No SQL typing required for core operations.</p>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Internet-ready Operations Console</p>
+          <h2>Manage customers, merchants, orders, and delivery in one responsive web app.</h2>
+        </div>
+        <div class="hero-actions">
+          <div class="account-chip" id="current-user">Not signed in</div>
+          <button class="ghost-btn" id="logout-btn">Logout</button>
+          <button class="primary-btn" id="refresh-all-btn">Refresh All</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="section-header">
+          <div>
+            <h3>Business Dashboard</h3>
+            <p class="muted">Live KPIs, delivery workload, and operational charts driven directly from the SmartEats database.</p>
+          </div>
+        </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="grid-two">
+          <article class="card">
+            <div class="card-header">
+              <h4>Order Status Distribution</h4>
+              <p class="muted small">Live grouped counts from the orders table.</p>
+            </div>
+            <div id="order-status-chart" class="chart-stack"></div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Delivery Status Distribution</h4>
+              <p class="muted small">Current workload in the delivery network.</p>
+            </div>
+            <div id="delivery-status-chart" class="chart-stack"></div>
+          </article>
+        </div>
+        <div class="grid-two">
+          <article class="card">
+            <div class="card-header">
+              <h4>Top Dishes by Revenue</h4>
+            </div>
+            <div id="top-dishes-table" class="table-shell"></div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Best Rider Performance</h4>
+            </div>
+            <div id="rider-performance-table" class="table-shell"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-explorer">
+        <div class="section-header">
+          <div>
+            <h3>No-Code Query Builder</h3>
+            <p class="muted">Select a table, search by keywords, add filters, sort results, and page through records without writing SQL.</p>
+          </div>
+        </div>
+        <div class="card form-card">
+          <div class="form-grid">
+            <label>
+              <span>Table</span>
+              <select id="query-table"></select>
+            </label>
+            <label>
+              <span>Search</span>
+              <input id="query-search" type="text" placeholder="Search business columns...">
+            </label>
+            <label>
+              <span>Sort By</span>
+              <select id="query-sort"></select>
+            </label>
+            <label>
+              <span>Direction</span>
+              <select id="query-direction">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              <span>Page Size</span>
+              <select id="query-page-size">
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-grid">
+            <label>
+              <span>Filter Field</span>
+              <select id="filter-field"></select>
+            </label>
+            <label>
+              <span>Operator</span>
+              <select id="filter-operator">
+                <option value="eq">Equals</option>
+                <option value="ne">Not equal</option>
+                <option value="lt">Less than</option>
+                <option value="lte">Less than or equal</option>
+                <option value="gt">Greater than</option>
+                <option value="gte">Greater than or equal</option>
+                <option value="like">Contains</option>
+              </select>
+            </label>
+            <label>
+              <span>Value</span>
+              <input id="filter-value" type="text" placeholder="Filter value">
+            </label>
+            <div class="filter-actions">
+              <button class="secondary-btn" id="add-filter-btn">Add Filter</button>
+              <button class="ghost-btn" id="clear-filters-btn">Clear Filters</button>
+            </div>
+          </div>
+          <div class="chips" id="active-filters"></div>
+          <div class="form-actions">
+            <button class="primary-btn" id="run-query-btn">Run Query</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-toolbar">
+            <div id="query-meta" class="muted small"></div>
+            <div class="pager">
+              <button class="ghost-btn" id="prev-page-btn">Previous</button>
+              <button class="ghost-btn" id="next-page-btn">Next</button>
+            </div>
+          </div>
+          <div id="query-results" class="table-shell"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-records">
+        <div class="section-header">
+          <div>
+            <h3>CRUD Studio</h3>
+            <p class="muted">Create, update, and delete records from exposed tables using guided forms generated from live schema metadata.</p>
+          </div>
+        </div>
+        <div class="grid-two">
+          <article class="card form-card">
+            <div class="card-header">
+              <h4>Mutation Target</h4>
+            </div>
+            <div class="form-grid two-column">
+              <label>
+                <span>Table</span>
+                <select id="crud-table"></select>
+              </label>
+              <label>
+                <span>Action</span>
+                <select id="crud-action">
+                  <option value="create">Create</option>
+                  <option value="update">Update</option>
+                  <option value="delete">Delete</option>
+                </select>
+              </label>
+            </div>
+            <div class="subsection">
+              <h5>Primary Key Fields</h5>
+              <div id="crud-key-fields" class="dynamic-form"></div>
+            </div>
+            <div class="subsection">
+              <h5>Value Fields</h5>
+              <div id="crud-value-fields" class="dynamic-form"></div>
+            </div>
+            <div class="form-actions">
+              <button class="primary-btn" id="run-mutation-btn">Execute Action</button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h4>Mutation Guidance</h4>
+            </div>
+            <ul class="feature-list">
+              <li>Create mode inserts a new row based on the fields you provide.</li>
+              <li>Update mode locates one record using the table primary key and updates only the fields you fill in.</li>
+              <li>Delete mode removes one record using the table primary key.</li>
+              <li>All actions respect the same foreign key and integrity rules enforced by the database.</li>
+              <li>Error messages are shown directly if a key, unique constraint, or foreign key rule is violated.</li>
+            </ul>
+            <div class="notice-box" id="mutation-result">No action executed yet.</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-schema">
+        <div class="section-header">
+          <div>
+            <h3>Schema Explorer</h3>
+            <p class="muted">Read the exposed table definitions, primary keys, searchable columns, and feature list from the live backend metadata.</p>
+          </div>
+        </div>
+        <div id="schema-grid" class="schema-grid"></div>
+      </section>
+
+      <section class="view" id="view-manual">
+        <div class="section-header">
+          <div>
+            <h3>Web Application Feature Manual</h3>
+            <p class="muted">This page lists every major feature implemented in the SmartEats web system for project presentation and real-world usage discussion.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div id="manual-list" class="manual-list"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-guide">
+        <div class="section-header">
+          <div>
+            <h3>Page Guide</h3>
+            <p class="muted">This page explains what each screen in the SmartEats system is for, who should use it, and what can be demonstrated there.</p>
+          </div>
+        </div>
+        <div id="page-guide" class="guide-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

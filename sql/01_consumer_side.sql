@@ -3,9 +3,10 @@ USE smarteats;
 CREATE TABLE customer (
     customer_id VARCHAR(50) NOT NULL,
     user_name VARCHAR(100) NOT NULL,
-    password_hash CHAR(64) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     PRIMARY KEY (customer_id),
+    UNIQUE KEY uq_customer_user_name (user_name),
     UNIQUE KEY uq_customer_phone (phone),
     CONSTRAINT chk_customer_phone_format CHECK (phone REGEXP '^[0-9]{11,20}$')
 ) ENGINE=InnoDB;

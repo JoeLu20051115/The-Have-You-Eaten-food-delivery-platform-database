@@ -7,41 +7,174 @@ This repository contains a cleaned, normalized, and runnable MySQL-compatible da
 3. Order Hub
 4. Delivery Network
 
-## Repository Structure
+## Web Application
+
+The repository also includes a dynamic SmartEats web control center built with FastAPI plus a browser frontend.
+
+Main web assets are located in:
+
+1. [webapp/backend/app/main.py](webapp/backend/app/main.py)
+2. [webapp/backend/app/static/index.html](webapp/backend/app/static/index.html)
+3. [webapp/backend/app/static/app.js](webapp/backend/app/static/app.js)
+4. [webapp/backend/app/static/styles.css](webapp/backend/app/static/styles.css)
+5. [webapp/docs/PRODUCTION_DEPLOYMENT.md](webapp/docs/PRODUCTION_DEPLOYMENT.md)
+
+### First-time web setup
+
+This section is only required for people who want to run the dynamic website locally on their own machine.
+
+You do not need to run this if:
+
+1. You only want to open someone else's temporary `localtunnel` link.
+2. You only want to view the static GitHub Pages version.
+
+You do need to run this once if:
+
+1. You want your own local dynamic website at `http://127.0.0.1:8000`.
+2. You want to develop, debug, or demonstrate the backend on your own computer.
+3. You are a teammate who cloned the repository and wants to run the full project independently.
+
+In WSL, run:
+
+```bash
+cd /mnt/c/Users/15957/Desktop/CSC3170_project/webapp/backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Then generate an administrator password hash:
+
+```bash
+python scripts/generate_password_hash.py
+```
+
+Put the generated hash into `.env` as:
+
+```dotenv
+SMARTEATS_ADMIN_USERNAME=admin
+SMARTEATS_ADMIN_PASSWORD_HASH=pbkdf2_sha256$390000$replace$replace
+```
+
+After that, start the website locally:
+
+```bash
+bash start_dev.sh
+```
+
+After the first successful setup, later launches are much shorter. Usually you only need:
+
+```bash
+cd /mnt/c/Users/15957/Desktop/CSC3170_project/webapp/backend
+source .venv/bin/activate
+bash start_dev.sh
+```
+
+You only need to repeat the full first-time setup if one of these happens:
+
+1. You are on a new machine.
+2. The `.venv` folder was deleted.
+3. The `.env` file does not exist yet.
+4. The Python dependencies changed and need reinstalling.
+
+## How To Open The Website
+
+This project contains a dynamic website, but it is not officially deployed on a public server.
+
+That means:
+
+1. `http://127.0.0.1:8000` only works on the same machine that is running the FastAPI backend.
+2. Other people cannot open your own `127.0.0.1:8000`, because on their computer that address points to their own local machine, not yours.
+3. If another person wants to use the dynamic website, they must either run the project locally themselves or you must temporarily expose your local server through a tool such as `localtunnel`.
+
+So the practical rule is:
+
+1. If a person wants their own local dynamic website, they must do the first-time setup once on their own machine.
+2. If a person only wants to access your already running website, they should use your shared `localtunnel` URL and do not need to run the setup locally.
+
+### Option 1. Open the website on your own computer
+
+This is the standard way to use the dynamic version without paying for formal deployment.
+
+In WSL, run:
+
+```bash
+cd /mnt/c/Users/15957/Desktop/CSC3170_project/webapp/backend
+source .venv/bin/activate
+bash start_dev.sh
+```
+
+Then open this address in the browser on the same computer:
 
 ```text
-archive/
-  delivery.zip
-  merchantData.zip
-  order_hub.zip
-data/
-  consumer_side/
-    address.csv
-    customer.csv
-  delivery_network/
-    delivery_task.csv
-    rider.csv
-  merchant_and_menu/
-    category.csv
-    dish.csv
-    merchant.csv
-    store.csv
-  order_hub/
-    order_details.csv
-    orders.csv
-docs/
-  Project_CSC3170_2026.pdf
-  food_delivery_platform_erd.pdf
-sql/
-  00_initialize_database.sql
-  01_consumer_side.sql
-  02_merchant_and_menu.sql
-  03_order_hub.sql
-  04_delivery_network.sql
-  05_operational_queries.sql
-  06_analytics_queries.sql
-README.md
+http://127.0.0.1:8000
 ```
+
+Current login model:
+
+1. The administrator account is preconfigured locally in `.env`.
+2. Normal users are not pre-created.
+3. The website opens with the Sign In page first.
+4. If a user has no account, they click `Have no account? Register here` to switch to the register page.
+5. After registration succeeds, the page returns to Sign In and the new user logs in there.
+6. If the password is wrong, the error is shown directly inside the login card.
+7. Only the administrator can perform create, update, and delete operations.
+
+### Option 2. Let another person run the project locally
+
+If another teammate wants to open the same dynamic website without using your computer, they should:
+
+1. Clone or download this repository.
+2. Set up WSL MariaDB and bootstrap the database.
+3. Start the backend locally with `bash start_dev.sh`.
+4. Open `http://127.0.0.1:8000` on their own machine.
+
+This is the recommended no-cost collaboration path for this project.
+
+### Option 3. Temporary public sharing without official deployment
+
+If you want another person to access your currently running local website without buying a server, first keep the backend running locally, then open another terminal and run:
+
+```bash
+npx localtunnel --port 8000
+```
+
+This command returns a temporary public URL such as:
+
+```text
+https://example-name.loca.lt
+```
+
+Other people must open that `loca.lt` URL, not `http://127.0.0.1:8000`.
+
+Important limitations:
+
+1. This is temporary sharing, not formal deployment.
+2. The URL may change every time you restart localtunnel.
+3. Your computer and local backend must stay running.
+4. If your network changes or your computer sleeps, the shared link may stop working.
+
+### Option 4. Static online preview only
+
+If you only need an online presentation page and do not need the real backend database, you can use the static GitHub Pages version in `docs/`.
+
+That version can be published online for free, but it does not provide the real dynamic backend, live database queries, or true CRUD operations.
+
+Deployment assets are provided in:
+
+1. [webapp/docs/PRODUCTION_DEPLOYMENT.md](webapp/docs/PRODUCTION_DEPLOYMENT.md)
+2. [deploy/nginx/smarteats.conf](deploy/nginx/smarteats.conf)
+3. [deploy/systemd/smarteats-web.service](deploy/systemd/smarteats-web.service)
+4. [deploy/scripts/provision_ubuntu.sh](deploy/scripts/provision_ubuntu.sh)
+
+The repository also includes a GitHub Pages static presentation version for zero-server online access:
+
+1. [docs/index.html](docs/index.html)
+2. [docs/styles.css](docs/styles.css)
+3. [docs/app.js](docs/app.js)
+
+If you enable GitHub Pages on the `/docs` folder of the `main` branch, the project can be accessed online without keeping a backend service running.
 
 ## Design Highlights
 
@@ -97,15 +230,6 @@ The design keeps the schema in good normalized form:
 - 500 delivery tasks
 
 ## Environment Setup
-
-### Why your previous commands failed
-
-Your WSL shell error came from two separate issues:
-
-1. `mysql: command not found`
-  This means the database client was not installed in WSL.
-2. `SOURCE`, `USE`, and `SHOW TABLES` were executed in bash directly.
-  These are SQL commands and must be executed inside the MySQL or MariaDB client, not in the Linux shell.
 
 ### Dependency file
 
@@ -407,15 +531,4 @@ These issues are now corrected in the cleaned project structure.
 - The cleaned SQL scripts in `sql/` are now the authoritative version.
 - If your MySQL environment blocks `LOCAL INFILE`, enable it in the client configuration before loading.
 
-
-## Quick Start
-
-For a clean WSL Ubuntu setup, the recommended command sequence is:
-
-```bash
-cd /mnt/c/Users/15957/Desktop/CSC3170_project
-chmod +x scripts/install_wsl_env.sh scripts/bootstrap_database.sh scripts/verify_database.sh
-./scripts/install_wsl_env.sh
-./scripts/bootstrap_database.sh
-./scripts/verify_database.sh
 ```

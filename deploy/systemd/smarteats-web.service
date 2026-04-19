@@ -1,0 +1,20 @@
+[Unit]
+Description=SmartEats FastAPI Web Service
+After=network.target mariadb.service
+Wants=mariadb.service
+
+[Service]
+Type=simple
+User=smarteats
+Group=www-data
+WorkingDirectory=/opt/smarteats/webapp/backend
+EnvironmentFile=/opt/smarteats/webapp/backend/.env.production
+ExecStart=/opt/smarteats/webapp/backend/.venv/bin/gunicorn -c /opt/smarteats/webapp/backend/gunicorn.conf.py app.main:app
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

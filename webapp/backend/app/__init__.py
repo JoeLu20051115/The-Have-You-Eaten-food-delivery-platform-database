@@ -1,0 +1,1 @@
+"""SmartEats web backend package."""

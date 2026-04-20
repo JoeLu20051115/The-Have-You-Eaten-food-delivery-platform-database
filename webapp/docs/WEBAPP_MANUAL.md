@@ -20,6 +20,8 @@ The SmartEats web application is a full-stack control center designed around the
    Explains what each page is used for, who should use it, and what can be demonstrated there.
 7. Login and Access Control
    Requires sign-in before entering the system and separates viewer and admin permissions.
+8. AI Assistant (optional)
+   Natural-language questions and answers backed by an OpenAI-compatible LLM. The backend exposes a read-only SQL tool; queries are validated and row-capped. Configure `SMARTEATS_OPENAI_API_KEY` and related variables in `.env`.
 
 ## User-Facing Features
 
@@ -39,6 +41,7 @@ The SmartEats web application is a full-stack control center designed around the
 14. Dedicated in-app page-by-page explanation screen for demonstrations and user onboarding
 15. Role-based login with protected CRUD capability
 16. Sensitive password fields masked as `*****` in returned results
+17. Optional AI Assistant page for natural-language questions backed by read-only SQL tools
 
 ## Backend Capabilities
 
@@ -51,6 +54,7 @@ The SmartEats web application is a full-stack control center designed around the
 7. Analytics bundle endpoint
 8. Database overview endpoint
 9. Health check endpoint
+10. Agent status and chat endpoints for optional LLM integration
 
 ## Internet-Ready Direction
 

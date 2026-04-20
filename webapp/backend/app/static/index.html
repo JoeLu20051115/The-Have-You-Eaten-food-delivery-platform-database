@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEats Control Center</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css?v=2">
 </head>
 <body>
   <div class="auth-overlay" id="auth-overlay">
@@ -80,12 +83,19 @@
         <button class="nav-item" data-view="explorer">No-Code Query</button>
         <button class="nav-item" data-view="records">CRUD Studio</button>
         <button class="nav-item" data-view="schema">Schema Explorer</button>
+        <button class="nav-item nav-item--featured" type="button" data-view="agent" title="Ask in natural language · read-only SQL">
+          <span class="nav-item__row">
+            <span class="nav-item__label">AI Assistant</span>
+            <span class="nav-pill">LLM</span>
+          </span>
+          <span class="nav-item__hint">Natural language over your live data</span>
+        </button>
         <button class="nav-item" data-view="manual">Feature Manual</button>
         <button class="nav-item" data-view="guide">Page Guide</button>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="status-pill" id="health-pill">Checking backend...</div>
+        <div class="status-pill" id="health-pill">Connecting…</div>
         <p class="small muted">No SQL typing required for core operations.</p>
       </div>
     </aside>
@@ -288,6 +298,37 @@
         <div id="schema-grid" class="schema-grid"></div>
       </section>
 
+      <section class="view view--agent" id="view-agent">
+        <div class="agent-page-header">
+          <div class="agent-hero">
+            <div class="agent-hero__badge">
+              <span class="agent-hero__icon" aria-hidden="true">◈</span>
+              <span>LLM · Read-only database</span>
+            </div>
+            <h3 class="agent-hero__title">AI Assistant</h3>
+            <p class="agent-hero__desc">Ask questions in natural language. The assistant runs <strong>read-only SQL</strong> on the server against the live SmartEats database. Configure an OpenAI-compatible endpoint and API key in <code>.env</code>.</p>
+          </div>
+        </div>
+        <div class="notice-box agent-status" id="agent-status-banner">Checking LLM configuration…</div>
+        <div class="card agent-card agent-card--featured">
+          <div class="agent-card__head">
+            <span class="agent-card__title">Conversation</span>
+            <span class="agent-card__sub">Enter to send · Shift+Enter for a new line</span>
+          </div>
+          <div id="agent-thread" class="agent-thread" aria-live="polite"></div>
+          <div class="agent-compose">
+            <label class="agent-label">
+              <span>Your message</span>
+              <textarea id="agent-input" rows="3" placeholder="e.g. How many completed orders last week? Which rider has the most deliveries?"></textarea>
+            </label>
+            <div class="agent-compose-actions">
+              <button type="button" class="ghost-btn" id="agent-clear-btn">Clear chat</button>
+              <button type="button" class="primary-btn primary-btn--agent" id="agent-send-btn">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="view" id="view-manual">
         <div class="section-header">
           <div>
@@ -313,6 +354,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=2" defer></script>
 </body>
 </html>

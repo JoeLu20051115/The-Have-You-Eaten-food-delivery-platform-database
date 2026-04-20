@@ -9,6 +9,11 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BASE_DIR / ".env")
 
+# Shared defaults for the bundled LLM stack (ModelScope OpenAI-compatible inference).
+# Do not commit API keys; set SMARTEATS_OPENAI_API_KEY in .env (see .env.example).
+_DEFAULT_LLM_BASE_URL = "https://api-inference.modelscope.cn/v1"
+_DEFAULT_LLM_MODEL = "ZhipuAI/GLM-5.1"
+
 
 def _default_database_url() -> str:
     if os.name == "posix":
@@ -40,6 +45,9 @@ class Settings:
     session_https_only: bool = _parse_bool("SMARTEATS_SESSION_HTTPS_ONLY", False)
     admin_username: str = os.getenv("SMARTEATS_ADMIN_USERNAME", "admin")
     admin_password_hash: str = os.getenv("SMARTEATS_ADMIN_PASSWORD_HASH", "")
+    openai_api_key: str = os.getenv("SMARTEATS_OPENAI_API_KEY", "").strip()
+    openai_base_url: str = os.getenv("SMARTEATS_OPENAI_BASE_URL", _DEFAULT_LLM_BASE_URL).strip()
+    llm_model: str = os.getenv("SMARTEATS_LLM_MODEL", _DEFAULT_LLM_MODEL).strip()
 
 
 settings = Settings()

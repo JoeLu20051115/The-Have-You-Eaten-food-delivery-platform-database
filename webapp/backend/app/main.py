@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from openai import APIError as OpenAIAPIError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,8 @@ from .auth import (
 )
 from .config import settings
 from .db import get_db
-from .schemas import LoginRequest, MutationRequest, QueryRequest, RegisterRequest
+from .agent_service import agent_status, run_agent_chat
+from .schemas import AgentChatRequest, LoginRequest, MutationRequest, QueryRequest, RegisterRequest
 from .services import (
     BadRequestError,
     ConflictError,
@@ -44,12 +46,17 @@ app.add_middleware(
 )
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
 def root() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+    # Avoid stale HTML when users only hit "refresh"; they still need hard-refresh if CDN in front caches.
+    return FileResponse(
+        STATIC_DIR / "index.html",
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"},
+    )
 
 
 @app.get("/api/health")
@@ -194,3 +201,26 @@ def api_delete_record(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except ConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/api/agent/status")
+def api_agent_status(_: dict = Depends(require_roles("user", "admin"))) -> dict:
+    return agent_status()
+
+
+@app.post("/api/agent/chat")
+def api_agent_chat(
+    payload: AgentChatRequest,
+    db: Session = Depends(get_db),
+    _: dict = Depends(require_roles("user", "admin")),
+) -> dict:
+    try:
+        return run_agent_chat(
+            db,
+            payload.message,
+            [turn.model_dump() for turn in payload.history],
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except OpenAIAPIError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

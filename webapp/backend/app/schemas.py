@@ -34,3 +34,13 @@ class RegisterRequest(BaseModel):
     username: str = Field(min_length=1, max_length=100)
     phone: str = Field(min_length=11, max_length=20)
     password: str = Field(min_length=1, max_length=200)
+
+
+class AgentHistoryTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(default="", max_length=32000)
+
+
+class AgentChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=8000)
+    history: list[AgentHistoryTurn] = Field(default_factory=list, max_length=24)

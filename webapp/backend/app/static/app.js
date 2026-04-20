@@ -55,6 +55,16 @@ const state = {
       ],
     },
     {
+      name: 'AI Assistant',
+      audience: 'Analysts, presenters, anyone who prefers natural language over SQL',
+      purpose: 'Optional LLM that calls a server-side read-only SQL tool so you can ask business questions in plain language.',
+      points: [
+        'Requires SMARTEATS_OPENAI_API_KEY (or another OpenAI-compatible endpoint) in the backend .env file.',
+        'The model never receives raw passwords; sensitive fields stay masked like the rest of the app.',
+        'Use it to demo “database + LLM” integration without giving the model write access.',
+      ],
+    },
+    {
       name: 'Feature Manual',
       audience: 'All users, teachers, judges',
       purpose: 'Lists the implemented capabilities of the SmartEats web application in one place so visitors can understand the full project scope.',
@@ -89,6 +99,10 @@ const state = {
     table: null,
     action: 'create',
   },
+  agent: {
+    messages: [],
+  },
+  agentLlm: null,
 };
 
 const els = {
@@ -140,6 +154,11 @@ const els = {
   schemaGrid: document.getElementById('schema-grid'),
   manualList: document.getElementById('manual-list'),
   pageGuide: document.getElementById('page-guide'),
+  agentStatusBanner: document.getElementById('agent-status-banner'),
+  agentThread: document.getElementById('agent-thread'),
+  agentInput: document.getElementById('agent-input'),
+  agentSendBtn: document.getElementById('agent-send-btn'),
+  agentClearBtn: document.getElementById('agent-clear-btn'),
   toast: document.getElementById('toast'),
 };
 
@@ -262,9 +281,104 @@ async function handleLogout() {
   showToast('Logged out');
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderAgentStatusBanner() {
+  if (!els.agentStatusBanner) return;
+  const s = state.agentLlm;
+  if (!s || !s.enabled) {
+    els.agentStatusBanner.textContent =
+      'LLM is disabled. Set SMARTEATS_OPENAI_API_KEY (and optionally SMARTEATS_OPENAI_BASE_URL / SMARTEATS_LLM_MODEL) in webapp/backend/.env, then restart the backend.';
+    els.agentStatusBanner.className = 'notice-box agent-status error';
+    return;
+  }
+  els.agentStatusBanner.textContent = `LLM ready · model ${s.model}`;
+  els.agentStatusBanner.className = 'notice-box agent-status ok';
+}
+
+function renderAgentThread() {
+  if (!els.agentThread) return;
+  if (!state.agent.messages.length) {
+    els.agentThread.innerHTML = `
+      <div class="agent-empty">
+        <span class="agent-empty__icon" aria-hidden="true">💬</span>
+        <p>Ask about orders, riders, stores, dishes, or customers. The assistant runs <strong>read-only SQL</strong> on the server and never writes to the database.</p>
+      </div>`;
+    return;
+  }
+  els.agentThread.innerHTML = state.agent.messages.map((m) => {
+    if (m.role === 'user') {
+      return `<div class="agent-bubble user"><span class="bubble-label">You</span>${escapeHtml(m.content)}</div>`;
+    }
+    const steps = m.steps && m.steps.length
+      ? `<div class="agent-steps">Tool trace${m.steps.map((st) => {
+        const sql = st.sql_preview ? `<code>${escapeHtml(st.sql_preview)}</code>` : '';
+        const ok = st.ok ? 'ok' : 'failed';
+        return `<div>${escapeHtml(st.tool)} · ${ok}${sql}</div>`;
+      }).join('')}</div>`
+      : '';
+    return `<div class="agent-bubble assistant"><span class="bubble-label">Assistant</span>${escapeHtml(m.reply || '')}${steps}</div>`;
+  }).join('');
+  els.agentThread.scrollTop = els.agentThread.scrollHeight;
+}
+
+async function loadAgentStatus() {
+  try {
+    state.agentLlm = await api('/api/agent/status');
+  } catch {
+    state.agentLlm = { enabled: false, model: '', base_url: '' };
+  }
+  renderAgentStatusBanner();
+}
+
+async function handleAgentSend() {
+  const text = els.agentInput.value.trim();
+  if (!text) {
+    showToast('Enter a message first', true);
+    return;
+  }
+  if (!state.agentLlm?.enabled) {
+    showToast('LLM is not configured on the server', true);
+    return;
+  }
+  state.agent.messages.push({ role: 'user', content: text });
+  els.agentInput.value = '';
+  renderAgentThread();
+  els.agentSendBtn.disabled = true;
+  const history = [];
+  for (const m of state.agent.messages.slice(0, -1)) {
+    if (m.role === 'user') history.push({ role: 'user', content: m.content });
+    if (m.role === 'assistant') history.push({ role: 'assistant', content: m.reply || '' });
+  }
+  try {
+    const data = await api('/api/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: text, history }),
+    });
+    state.agent.messages.push({
+      role: 'assistant',
+      reply: data.reply || '',
+      steps: data.steps || [],
+    });
+    renderAgentThread();
+  } catch (error) {
+    state.agent.messages.pop();
+    showToast(error.message, true);
+    renderAgentThread();
+  } finally {
+    els.agentSendBtn.disabled = false;
+  }
+}
+
 function showToast(message, isError = false) {
   els.toast.textContent = message;
-  els.toast.style.background = isError ? 'rgba(127, 29, 29, 0.92)' : 'rgba(26, 32, 22, 0.92)';
+  els.toast.style.background = isError ? 'rgba(185, 28, 28, 0.95)' : 'rgba(34, 34, 34, 0.94)';
   els.toast.classList.add('show');
   window.clearTimeout(showToast._timer);
   showToast._timer = window.setTimeout(() => els.toast.classList.remove('show'), 2600);
@@ -441,6 +555,7 @@ function renderManual() {
     'No-code search, filtering, sorting, and pagination across exposed tables',
     'CRUD form generation from live database schema metadata',
     'Schema explorer for presentation and database teaching use',
+    'Optional AI assistant with read-only SQL tool calls (OpenAI-compatible API)',
     'Mobile-friendly interface suitable for demos and internet deployment',
     'Chart-ready analytics sections for order, delivery, dish, and rider performance',
     'Dedicated Page Guide screen explaining the purpose of every major page',
@@ -490,7 +605,7 @@ async function loadMeta() {
   state.tables = tables;
   state.overview = overview;
   els.healthPill.textContent = `Backend OK · ${health.database}`;
-  els.healthPill.style.background = 'rgba(15, 118, 110, 0.14)';
+  els.healthPill.className = 'status-pill status-pill--ok';
   if (!state.query.table) state.query.table = tables[0]?.name;
   if (!state.crud.table) state.crud.table = tables[0]?.name;
   populateTableSelect(els.queryTable, state.query.table);
@@ -499,6 +614,8 @@ async function loadMeta() {
   renderActiveFilters();
   refreshCrudForm();
   renderSchemaExplorer();
+  await loadAgentStatus();
+  renderAgentThread();
   renderManual();
   renderPageGuide();
 }
@@ -601,6 +718,24 @@ function attachEvents() {
     refreshCrudForm();
   });
 
+  if (els.agentSendBtn) {
+    els.agentSendBtn.addEventListener('click', () => handleAgentSend().catch(() => {}));
+  }
+  if (els.agentInput) {
+    els.agentInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        handleAgentSend().catch(() => {});
+      }
+    });
+  }
+  if (els.agentClearBtn) {
+    els.agentClearBtn.addEventListener('click', () => {
+      state.agent.messages = [];
+      renderAgentThread();
+    });
+  }
+
   els.runMutationBtn.addEventListener('click', async () => {
     if (state.auth.role !== 'admin') {
       showToast('Only admin accounts can modify data', true);
@@ -638,7 +773,7 @@ async function bootstrapData() {
       return;
     }
     els.healthPill.textContent = 'Backend error';
-    els.healthPill.style.background = 'rgba(127, 29, 29, 0.14)';
+    els.healthPill.className = 'status-pill status-pill--err';
     showToast(error.message, true);
   }
 }

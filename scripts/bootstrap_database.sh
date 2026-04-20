@@ -8,4 +8,5 @@ sudo mariadb --local-infile=1 <<'SQL'
 SOURCE sql/00_initialize_database.sql;
 USE smarteats;
 SHOW TABLES;
+SOURCE sql/07_app_user_grants.sql;
 SQL

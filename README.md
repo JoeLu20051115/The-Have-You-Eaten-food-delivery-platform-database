@@ -19,6 +19,33 @@ Main web assets are located in:
 4. [webapp/backend/app/static/styles.css](webapp/backend/app/static/styles.css)
 5. [webapp/docs/PRODUCTION_DEPLOYMENT.md](webapp/docs/PRODUCTION_DEPLOYMENT.md)
 
+### Fully automated setup without sudo (local MariaDB binary)
+
+If you cannot use `apt`/`sudo`, run this **once** from the repository root after cloning (downloads ~332MB on first run unless the tarball is already present under `$HOME/.local/share/smarteats-mariadb/`):
+
+```bash
+chmod +x finish_setup_user.sh scripts/*.sh
+./finish_setup_user.sh
+```
+
+Then start the backend as usual (`webapp/backend`, `uvicorn` or `start_dev.sh`). The script uses port **3307** for MySQL; `patch_webapp_env_user_mariadb.sh` aligns `SMARTEATS_DATABASE_URL` in `.env`.
+
+### LLM AI Assistant (optional)
+
+The web UI includes an **AI Assistant** view: you ask questions in natural language, and the backend calls an **OpenAI-compatible** chat API. The model can invoke a single tool, `run_readonly_query`, which executes **read-only** SQL: statements are validated, wrapped, and row-capped in [`webapp/backend/app/sql_guard.py`](webapp/backend/app/sql_guard.py). Sensitive columns stay masked like the rest of the app.
+
+Copy [`webapp/backend/.env.example`](webapp/backend/.env.example) to `webapp/backend/.env`. For the AI Assistant, **`SMARTEATS_OPENAI_API_KEY` is the only value you must set** (your own token). The backend already defaults to **ModelScope** inference and **`ZhipuAI/GLM-5.1`** in [`webapp/backend/app/config.py`](webapp/backend/app/config.py); override with env vars if you use OpenAI, Ollama, or another provider.
+
+| Variable | Purpose |
+|----------|---------|
+| `SMARTEATS_OPENAI_API_KEY` | Required to enable the assistant. Use your [ModelScope access token](https://modelscope.cn/my/myaccesstoken) for the default stack. **Never commit this key.** |
+| `SMARTEATS_OPENAI_BASE_URL` | Optional. Default: `https://api-inference.modelscope.cn/v1`. For Ollama’s OpenAI shim, use `http://127.0.0.1:11434/v1`. |
+| `SMARTEATS_LLM_MODEL` | Optional. Default: `ZhipuAI/GLM-5.1`. Use any id from your provider’s model list. |
+
+The backend uses the same `OpenAI` client as the official Python example; it does **not** use streaming in the agent route—tool calls use the non-streaming chat completion API. If a model does not support function/tool calling, switch models or rely on the JSON fallback in the agent service.
+
+Endpoints: `GET /api/agent/status`, `POST /api/agent/chat` (authenticated users). Restart the backend after changing `.env`. For production or public exposure, add rate limiting, budget caps, and review of prompts—**do not** put secrets in the frontend. **Never commit real API keys**; keep them only in local `.env`.
+
 ### First-time web setup
 
 This section is only required for people who want to run the dynamic website locally on their own machine.

@@ -303,6 +303,7 @@ def database_overview(db: Session) -> dict[str, Any]:
             "CRUD management for all exposed tables",
             "Operational analytics for dishes, orders, and riders",
             "Schema explorer powered by live reflected database metadata",
+            "LLM assistant (optional) with read-only SQL tool calls against the live database",
             "Deployment-ready FastAPI service and responsive web UI",
             "Role-based login with separate viewer and admin access",
             "Sensitive password fields are masked as ***** in results",

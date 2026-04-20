@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+STATE_ROOT="${MARIADB_STATE_ROOT:-$HOME/.local/share/smarteats-mariadb}"
+if [[ -f "$STATE_ROOT/env.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "$STATE_ROOT/env.sh"
+else
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/user_mariadb_env.sh"
+fi
+
+MARIADB_CLI="$MARIADB_BASE/bin/mariadb"
+[[ -x "$MARIADB_CLI" ]] || MARIADB_CLI="$MARIADB_BASE/bin/mysql"
+
 cd "$PROJECT_ROOT"
 
-sudo mariadb --local-infile=1 <<'SQL'
+"$MARIADB_CLI" -S "$MARIADB_SOCKET" -u root --local-infile=1 <<'SQL'
 USE smarteats;
 
 SELECT 'customer' AS table_name, COUNT(*) AS row_count FROM customer
